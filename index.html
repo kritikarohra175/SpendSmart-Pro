@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="SpendSmart"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#0E0E11"/>
+<meta name="description" content="SpendSmart Pro — Personal Finance Tracker. Works with any Indian bank. Excel, XLS & CSV import."/>
+<title>SpendSmart Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0E0E11;--bg2:#16161A;--bg3:#1E1E24;--bg4:#26262E;
+  --border:#2E2E38;--border2:#3A3A46;
+  --text:#F0EFF8;--text2:#9896B0;--text3:#5C5A72;
+  --accent:#7C6AF7;--accent2:#5E4FD9;
+  --accentg:linear-gradient(135deg,#7C6AF7,#C46AF7);
+  --green:#4ADE80;--red:#F87171;--amber:#FBBF24;
+  --r:12px;--rsm:8px;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+  --safe-top:env(safe-area-inset-top,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth;height:100%}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100%;overflow-x:hidden;padding-bottom:calc(64px + var(--safe-bottom))}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+input,select{font-family:'DM Sans',sans-serif;font-size:16px;color:var(--text);background:var(--bg3);border:1px solid var(--border);border-radius:var(--rsm);padding:11px 13px;outline:none;transition:border-color .2s,box-shadow .2s;width:100%;-webkit-appearance:none;appearance:none}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,106,247,.15)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%239896B0' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+select option{background:var(--bg3)}
+input::placeholder{color:var(--text3)}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .5s ease;padding-top:var(--safe-top)}
+.logo-big{width:80px;height:80px;border-radius:22px;background:var(--accentg);display:flex;align-items:center;justify-content:center;font-size:40px;color:#fff;box-shadow:0 8px 40px rgba(124,106,247,.5);animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{box-shadow:0 8px 32px rgba(124,106,247,.4)}50%{box-shadow:0 8px 56px rgba(124,106,247,.8)}}
+#splash h1{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;letter-spacing:-.02em}
+#splash p{font-size:14px;color:var(--text2)}
+#splash.hide{opacity:0;pointer-events:none}
+
+/* LAYOUT */
+.app{max-width:860px;margin:0 auto;animation:fadeUp .5s .2s both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* HEADER — desktop */
+.dsk-header{padding:calc(1.25rem + var(--safe-top)) 1.5rem 0;display:flex;align-items:center;gap:14px}
+.logo-mark{width:40px;height:40px;border-radius:10px;background:var(--accentg);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;flex-shrink:0}
+.dsk-header h1{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.02em}
+.dsk-header p{font-size:12px;color:var(--text2);margin-top:2px}
+.hdr-right{margin-left:auto;display:flex;gap:8px}
+.icon-btn{width:38px;height:38px;border-radius:9px;border:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .2s;font-size:18px}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+.icon-btn:active{transform:scale(.93)}
+
+/* DESKTOP TABS */
+.dsk-tabs{display:flex;gap:2px;padding:0 1.5rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:50;margin-top:1rem;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.dsk-tabs::-webkit-scrollbar{display:none}
+.tab{padding:11px 16px;font-size:13px;border:none;background:none;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:color .2s;white-space:nowrap;font-family:'DM Sans',sans-serif}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
+.tab:hover:not(.active){color:var(--text)}
+.bdot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block}
+
+/* MOBILE BOTTOM NAV */
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(22,22,26,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:8px 0 calc(8px + var(--safe-bottom));flex-direction:row;justify-content:space-around}
+.mob-tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;cursor:pointer;color:var(--text3);transition:color .2s;min-width:60px;background:none;border:none;font-family:'DM Sans',sans-serif}
+.mob-tab i{font-size:22px;transition:transform .2s}
+.mob-tab span{font-size:10px;font-weight:500}
+.mob-tab.active{color:var(--accent)}
+.mob-tab.active i{transform:translateY(-2px)}
+.mob-fab{position:fixed;bottom:calc(76px + var(--safe-bottom));right:20px;width:52px;height:52px;border-radius:16px;background:var(--accentg);border:none;cursor:pointer;display:none;align-items:center;justify-content:center;color:#fff;font-size:24px;box-shadow:0 4px 20px rgba(124,106,247,.5);z-index:99;transition:transform .2s}
+.mob-fab:active{transform:scale(.93)}
+
+/* SECTIONS */
+.section{display:none;padding:1.25rem 1.5rem}
+.section.active{display:block}
+
+/* PERIOD PILLS */
+.ptabs{display:flex;gap:6px;margin-bottom:1.25rem;flex-wrap:wrap}
+.pt{padding:6px 14px;font-size:12px;border:1px solid var(--border);border-radius:20px;cursor:pointer;background:none;color:var(--text2);transition:all .2s;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.pt.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pt:active{transform:scale(.96)}
+
+/* METRICS */
+.mgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1.25rem}
+.metric{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;position:relative;overflow:hidden}
+.metric::before{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;opacity:.06;background:var(--accent)}
+.mlabel{font-size:10px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.mval{font-size:20px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:-.02em}
+.msub{font-size:11px;color:var(--text3);margin-top:3px}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem 1.25rem;margin-bottom:1rem}
+.card h3{font-size:11px;font-weight:500;color:var(--text3);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.07em}
+
+/* CHARTS */
+.chart-wrap{position:relative;width:100%}
+.chart-tabs{display:flex;gap:6px;margin-bottom:1rem}
+.ct{padding:4px 12px;font-size:11px;border:1px solid var(--border);border-radius:14px;cursor:pointer;background:none;color:var(--text2);font-family:'DM Sans',sans-serif}
+.ct.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+canvas{display:block;max-width:100%}
+
+/* DONUT */
+.ringwrap{display:flex;align-items:center;gap:1.25rem;margin-bottom:1rem;flex-wrap:wrap}
+.rlegend{flex:1;min-width:140px;display:flex;flex-direction:column;gap:7px}
+.ritem{display:flex;align-items:center;gap:8px;font-size:12px}
+.rdot{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+
+/* CAT BARS */
+.cbar{margin-bottom:11px}
+.cbname{font-size:12px;color:var(--text2);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.cbpct{font-size:10px;color:var(--text3)}
+.cbamt{font-weight:600;font-family:'DM Mono',monospace;font-size:12px;color:var(--text)}
+.cbtrack{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.cbfill{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
+
+/* FORM */
+.eform{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem}
+.eform .full{grid-column:1/-1}
+.flabel{font-size:11px;color:var(--text2);display:block;margin-bottom:5px;letter-spacing:.03em}
+.brow{display:flex;gap:8px;justify-content:flex-end;align-items:center}
+.btn{padding:11px 20px;border-radius:var(--rsm);border:1px solid var(--border);background:var(--bg3);cursor:pointer;font-size:14px;color:var(--text);display:inline-flex;align-items:center;gap:7px;transition:all .2s;font-family:'DM Sans',sans-serif;-webkit-appearance:none}
+.btn:hover{border-color:var(--border2);background:var(--bg4)}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{background:var(--accent2)}
+.btn.full-w{width:100%;justify-content:center;margin-top:4px}
+
+/* TX LIST */
+.txi{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--bg3);border-radius:var(--rsm);margin-bottom:6px;border:1px solid transparent;transition:border-color .15s;animation:sli .2s ease}
+.txi:hover{border-color:var(--border)}
+@keyframes sli{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.txico{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.txinf{flex:1;min-width:0}
+.txtit{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.txmet{font-size:11px;color:var(--text3);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap}
+.txamt{font-size:15px;font-weight:600;font-family:'DM Mono',monospace;flex-shrink:0}
+.txdel{background:none;border:none;cursor:pointer;color:var(--text3);padding:8px;border-radius:8px;transition:all .15s;font-size:16px}
+.txdel:hover,.txdel:active{color:var(--red);background:rgba(248,113,113,.12)}
+
+/* FILTERS */
+.frow{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.frow select,.frow input{width:auto;font-size:14px}
+.frow input{flex:1;min-width:130px}
+
+/* INFO BOXES */
+.ibox{display:flex;gap:12px;align-items:flex-start;padding:13px 15px;border-radius:var(--rsm);margin-bottom:1rem;font-size:13px;line-height:1.7}
+.ibox.green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:#86EFAC}
+.ibox.amber{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:#FCD34D}
+.ibox i{font-size:18px;margin-top:2px;flex-shrink:0}
+
+/* IMPORT ZONE */
+.dropzone{border:1.5px dashed var(--border2);border-radius:var(--r);padding:2rem;text-align:center;cursor:pointer;color:var(--text3);font-size:13px;margin-bottom:1rem;transition:all .2s}
+.dropzone:hover,.dropzone.drag{background:var(--bg3);border-color:var(--accent);color:var(--text2)}
+.dz-icon{font-size:40px;display:block;margin-bottom:10px}
+.fmt-chips{display:flex;gap:6px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+.fc{font-size:11px;padding:3px 10px;border-radius:12px;border:1px solid}
+.fc.xl{border-color:rgba(74,222,128,.4);color:#86EFAC;background:rgba(74,222,128,.08)}
+.fc.cs{border-color:rgba(124,106,247,.4);color:#a898f8;background:rgba(124,106,247,.08)}
+
+/* BANK GRID */
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;margin-bottom:1rem}
+.bchip{padding:8px 6px;border:1px solid var(--border);border-radius:var(--rsm);cursor:pointer;text-align:center;font-size:11px;color:var(--text2);background:var(--bg3);transition:all .2s}
+.bchip:hover,.bchip.active{border-color:var(--accent);color:var(--accent);background:rgba(124,106,247,.08)}
+.bchip i{display:block;font-size:18px;margin-bottom:3px}
+.bchip small{display:block;font-size:10px;opacity:.55;margin-top:1px}
+
+/* STEPS */
+.steps{counter-reset:step;display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.step{display:flex;gap:12px;font-size:13px;align-items:flex-start}
+.step::before{counter-increment:step;content:counter(step);width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+
+/* COLUMN MAPPER */
+.mgr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:1rem 0}
+.mgr label{font-size:11px;color:var(--text2);display:block;margin-bottom:4px}
+#cprev{overflow-x:auto;margin-top:1rem;-webkit-overflow-scrolling:touch}
+#cprev table{width:100%;border-collapse:collapse;font-size:12px;font-family:'DM Mono',monospace}
+#cprev th{background:var(--bg4);padding:6px 10px;text-align:left;color:var(--text3);border-bottom:1px solid var(--border)}
+#cprev td{padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text2);white-space:nowrap}
+
+/* PROGRESS */
+#improg{display:none;margin-top:12px}
+.pbar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.pfill{height:100%;background:var(--accentg);border-radius:2px;transition:width .3s}
+.plabel{font-size:11px;color:var(--text3);margin-top:4px}
+
+.empty{text-align:center;padding:2.5rem 1rem;font-size:13px;color:var(--text3)}
+.empty i{font-size:38px;display:block;margin-bottom:10px;opacity:.35}
+.msg{font-size:13px;margin-top:10px;min-height:18px}
+.footer{text-align:center;padding:1.5rem 1.5rem 0;font-size:12px;color:var(--text3)}
+.footer strong{color:var(--accent);font-family:'Syne',sans-serif}
+
+/* ── RESPONSIVE ── */
+/* Tablet (641-900px) */
+@media(min-width:641px){
+  .mgrid{grid-template-columns:repeat(4,1fr)}
+  .mgr{grid-template-columns:1fr 1fr}
+  .eform{grid-template-columns:1fr 1fr}
+}
+/* Mobile (≤640px) */
+@media(max-width:640px){
+  body{padding-bottom:calc(70px + var(--safe-bottom))}
+  .dsk-header{padding:calc(1rem + var(--safe-top)) 1rem 0}
+  .dsk-header p{display:none}
+  .dsk-tabs{display:none}
+  .mob-nav{display:flex}
+  .mob-fab{display:flex}
+  .section{padding:1rem}
+  .mgrid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .eform{grid-template-columns:1fr}
+  .eform .full{grid-column:1}
+  .mgr{grid-template-columns:1fr}
+  .ringwrap{flex-direction:column;align-items:stretch}
+  .bchip small{display:none}
+  input,select{font-size:16px}
+  .ptabs{gap:5px}
+  .pt{padding:5px 10px;font-size:11px}
+  .frow{gap:6px}
+  .frow select{font-size:13px;padding:8px 30px 8px 10px}
+  .card{padding:.9rem 1rem}
+  .mval{font-size:18px}
+  .hdr-right .icon-btn:nth-child(2){display:none}
+}
+/* Large screens */
+@media(min-width:901px){
+  body{padding-bottom:0}
+  .mob-nav,.mob-fab{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="logo-big"><i class="ti ti-wallet"></i></div>
+  <h1>SpendSmart Pro</h1>
+  <p>Your personal finance tracker</p>
+</div>
+
+<div class="app">
+  <!-- Desktop Header -->
+  <div class="dsk-header">
+    <div class="logo-mark"><i class="ti ti-wallet"></i></div>
+    <div>
+      <h1>SpendSmart Pro</h1>
+      <p>Works with any bank · Excel, XLS &amp; CSV · Data stays on your device</p>
+    </div>
+    <div class="hdr-right">
+      <div class="icon-btn" title="Export as Excel" onclick="exportExcel()"><i class="ti ti-table-export"></i></div>
+      <div class="icon-btn" title="Backup JSON" onclick="exportJSON()"><i class="ti ti-download"></i></div>
+      <div class="icon-btn" title="Clear all data" onclick="clearAll()"><i class="ti ti-trash"></i></div>
+    </div>
+  </div>
+
+  <!-- Desktop Tabs -->
+  <div class="dsk-tabs">
+    <button class="tab active" onclick="showTab('dash')"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+    <button class="tab" onclick="showTab('charts')"><i class="ti ti-chart-bar"></i> Charts</button>
+    <button class="tab" onclick="showTab('add')"><i class="ti ti-plus"></i> Add Entry</button>
+    <button class="tab" onclick="showTab('txns')"><i class="ti ti-list"></i> Transactions</button>
+    <button class="tab" onclick="showTab('imp')"><i class="ti ti-upload"></i> Import <span class="bdot"></span></button>
+  </div>
+
+  <!-- ── DASHBOARD ── -->
+  <div id="tab-dash" class="section active">
+    <div class="ptabs">
+      <button class="pt active" onclick="setPeriod('week',event)">Week</button>
+      <button class="pt" onclick="setPeriod('month',event)">Month</button>
+      <button class="pt" onclick="setPeriod('quarter',event)">Quarter</button>
+      <button class="pt" onclick="setPeriod('year',event)">Year</button>
+      <button class="pt" onclick="setPeriod('all',event)">All time</button>
+    </div>
+    <div class="mgrid" id="metrics"></div>
+    <div class="card">
+      <h3>Spending by category</h3>
+      <div class="ringwrap">
+        <svg id="donut" width="110" height="110" viewBox="0 0 110 110"></svg>
+        <div class="rlegend" id="rlegend"></div>
+      </div>
+      <div id="cbars"></div>
+    </div>
+    <div class="card">
+      <h3>Recent transactions</h3>
+      <div id="recent"></div>
+    </div>
+  </div>
+
+  <!-- ── CHARTS ── -->
+  <div id="tab-charts" class="section">
+    <div class="ptabs" id="chart-period-tabs">
+      <button class="pt active" onclick="setChartPeriod('month',event)">This month</button>
+      <button class="pt" onclick="setChartPeriod('quarter',event)">Quarter</button>
+      <button class="pt" onclick="setChartPeriod('year',event)">This year</button>
+      <button class="pt" onclick="setChartPeriod('all',event)">All time</button>
+    </div>
+    <div class="card">
+      <h3>Monthly spending trend</h3>
+      <div class="chart-wrap" style="height:220px"><canvas id="lineChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Category breakdown</h3>
+      <div class="chart-tabs">
+        <button class="ct active" onclick="setCatChart('doughnut',event)">Doughnut</button>
+        <button class="ct" onclick="setCatChart('bar',event)">Bar</button>
+      </div>
+      <div class="chart-wrap" style="height:240px"><canvas id="catChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Income vs Expenses</h3>
+      <div class="chart-wrap" style="height:220px"><canvas id="incExpChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Daily spending (last 30 days)</h3>
+      <div class="chart-wrap" style="height:200px"><canvas id="dailyChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ── ADD ENTRY ── -->
+  <div id="tab-add" class="section">
+    <div class="card">
+      <h3>Add cash / manual transaction</h3>
+      <div class="eform">
+        <div><label class="flabel">Type</label>
+          <select id="txtype"><option value="expense">💸 Payment / Expense</option><option value="income">💰 Receipt / Income</option></select></div>
+        <div><label class="flabel">Amount (₹)</label><input type="number" id="txamt" placeholder="0.00" min="0" step="0.01" inputmode="decimal"/></div>
+        <div><label class="flabel">Category</label>
+          <select id="txcat">
+            <option>Food &amp; Dining</option><option>Transport</option><option>Shopping</option>
+            <option>Bills &amp; Utilities</option><option>Entertainment</option><option>Health</option>
+            <option>Education</option><option>Business</option><option>Investments</option><option>Other</option>
+          </select></div>
+        <div><label class="flabel">Date</label><input type="date" id="txdate"/></div>
+        <div class="full"><label class="flabel">Description</label><input type="text" id="txdesc" placeholder="e.g. Lunch, Auto fare, Grocery..."/></div>
+        <div><label class="flabel">Payment method</label>
+          <select id="txmeth">
+            <option value="cash">Cash</option><option value="upi">UPI</option>
+            <option value="card">Debit / Credit Card</option><option value="netbanking">Net Banking</option>
+            <option value="wallet">Wallet (Paytm / PhonePe)</option><option value="bank">Bank Transfer</option>
+          </select></div>
+        <div><label class="flabel">Notes (optional)</label><input type="text" id="txnote" placeholder="Any extra detail..."/></div>
+      </div>
+      <button class="btn primary full-w" onclick="addTx()"><i class="ti ti-plus"></i> Add transaction</button>
+      <div class="msg" id="addmsg"></div>
+    </div>
+  </div>
+
+  <!-- ── TRANSACTIONS ── -->
+  <div id="tab-txns" class="section">
+    <div class="frow">
+      <select id="fp" onchange="renderTxns()" style="flex:1;min-width:100px">
+        <option value="all">All time</option><option value="week">This week</option>
+        <option value="month" selected>This month</option><option value="quarter">Quarter</option><option value="year">Year</option>
+      </select>
+      <select id="fc" onchange="renderTxns()" style="flex:1;min-width:110px">
+        <option value="">All categories</option>
+        <option>Food &amp; Dining</option><option>Transport</option><option>Shopping</option>
+        <option>Bills &amp; Utilities</option><option>Entertainment</option><option>Health</option>
+        <option>Education</option><option>Business</option><option>Investments</option><option>Other</option>
+      </select>
+      <select id="ft" onchange="renderTxns()" style="flex:1;min-width:90px">
+        <option value="">All</option><option value="expense">Expenses</option><option value="income">Income</option>
+      </select>
+      <input type="text" id="fs" placeholder="🔍 Search..." oninput="renderTxns()" style="flex:2;min-width:120px"/>
+    </div>
+    <div id="txlist"></div>
+    <div id="txsum" style="font-size:12px;color:var(--text3);text-align:right;margin-top:8px;padding-bottom:.5rem"></div>
+  </div>
+
+  <!-- ── IMPORT ── -->
+  <div id="tab-imp" class="section">
+    <div class="ibox green">
+      <i class="ti ti-sparkles"></i>
+      <div><strong>Works with ANY Indian bank!</strong> — HDFC, SBI, ICICI, Axis, Kotak, IndusInd, Yes Bank, PNB, BOB, Canara, IDFC &amp; more.<br/>Upload Excel (.xlsx/.xls) or CSV — columns auto-detected.</div>
+    </div>
+    <div class="card">
+      <h3>Select your bank (optional)</h3>
+      <div class="bgrid" id="bgrid"></div>
+    </div>
+    <div class="card" id="binstruct" style="display:none">
+      <h3>How to download your statement</h3>
+      <div id="bsteps"></div>
+    </div>
+    <div class="card">
+      <h3>Upload your statement</h3>
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('filein').click()">
+        <span class="dz-icon">📊</span>
+        <strong>Tap to upload — or drag &amp; drop</strong><br/>Bank statement from any Indian bank
+        <div class="fmt-chips">
+          <span class="fc xl">✓ .xlsx Excel</span>
+          <span class="fc xl">✓ .xls Excel 97</span>
+          <span class="fc cs">✓ .csv</span>
+        </div>
+        <div style="font-size:11px;margin-top:6px;opacity:.6">Columns auto-detected · No manual setup needed</div>
+      </div>
+      <input type="file" id="filein" accept=".xlsx,.xls,.csv,.XLSX,.XLS,.CSV" style="display:none" onchange="handleUpload(event)"/>
+      <div id="improg"><div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div><div class="plabel" id="plabel">Reading...</div></div>
+      <div class="msg" id="impmsg"></div>
+    </div>
+    <div class="card" id="colmap" style="display:none">
+      <h3>Confirm column mapping</h3>
+      <div class="ibox amber"><i class="ti ti-adjustments"></i><div>Auto-detected below. Adjust if needed, then tap <strong>Import</strong>.</div></div>
+      <div class="mgr" id="mapfields"></div>
+      <div id="cprev"></div>
+      <div class="brow" style="margin-top:1rem;gap:10px">
+        <button class="btn" onclick="document.getElementById('colmap').style.display='none'">Cancel</button>
+        <button class="btn primary" onclick="runImport()"><i class="ti ti-database-import"></i> Import</button>
+      </div>
+      <div class="msg" id="impdone"></div>
+    </div>
+  </div>
+
+  <div class="footer">Powered by <strong>SpendSmart Pro</strong> · Your data never leaves your device</div>
+</div>
+
+<!-- Mobile Bottom Nav -->
+<nav class="mob-nav">
+  <button class="mob-tab active" id="mnav-dash" onclick="showTab('dash')"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></button>
+  <button class="mob-tab" id="mnav-charts" onclick="showTab('charts')"><i class="ti ti-chart-bar"></i><span>Charts</span></button>
+  <button class="mob-tab" id="mnav-txns" onclick="showTab('txns')"><i class="ti ti-list"></i><span>History</span></button>
+  <button class="mob-tab" id="mnav-imp" onclick="showTab('imp')"><i class="ti ti-upload"></i><span>Import</span></button>
+</nav>
+<button class="mob-fab" onclick="showTab('add')" title="Add transaction"><i class="ti ti-plus"></i></button>
+
+<script>
+// ── CONSTANTS ──
+const SK='spendsmart_v3';
+const CC={'Food & Dining':'#7C6AF7','Transport':'#34D399','Shopping':'#F87171','Bills & Utilities':'#60A5FA','Entertainment':'#F472B6','Health':'#A3E635','Education':'#FBBF24','Business':'#E879F9','Investments':'#22D3EE','Other':'#94A3B8'};
+const CI={'Food & Dining':'🍽️','Transport':'🚗','Shopping':'🛍️','Bills & Utilities':'⚡','Entertainment':'🎬','Health':'💊','Education':'📚','Business':'💼','Investments':'📈','Other':'📦'};
+const MI={'cash':'💵','upi':'📱','card':'💳','netbanking':'🏦','wallet':'👛','bank':'🔄'};
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+let txs=[],period='month',chartPeriod='year',catChartType='doughnut';
+let pRows=[],pHdrs=[],selBank=null;
+let lineChartInst=null,catChartInst=null,incExpChartInst=null,dailyChartInst=null;
+
+const BANKS=[
+  {id:'hdfc',n:'HDFC',fmt:'xlsx',steps:['Login to netbanking.hdfcbank.com','Accounts → Account Statement','Select date range → Download Excel (.xlsx)'],dc:'date',nc:'narration',wc:'withdrawal amt',cc:'deposit amt'},
+  {id:'sbi',n:'SBI',fmt:'xlsx',steps:['Login to onlinesbi.sbi','My Accounts → Account Statement','Select range → Download Excel'],dc:'txn date',nc:'description',wc:'debit',cc:'credit'},
+  {id:'icici',n:'ICICI',fmt:'xlsx',steps:['Login to icicibank.com','Accounts → Account Statement → Download Excel'],dc:'transaction date',nc:'remarks',wc:'withdrawal',cc:'deposit'},
+  {id:'axis',n:'Axis',fmt:'xlsx',steps:['Login to axisbank.com','Accounts → Download Statement → Excel'],dc:'tran date',nc:'particulars',wc:'dr',cc:'cr'},
+  {id:'kotak',n:'Kotak',fmt:'xlsx',steps:['Login to netbanking.kotak.com','Accounts → Statement → Download Excel'],dc:'date',nc:'description',wc:'debit amount',cc:'credit amount'},
+  {id:'indusind',n:'IndusInd',fmt:'xlsx',steps:['Login to indusnet.indusind.com','Accounts → Statement → Download Excel'],dc:'value date',nc:'narration',wc:'debit',cc:'credit'},
+  {id:'yes',n:'Yes Bank',fmt:'xlsx',steps:['Login to yesbank.in','Accounts → Statement → Excel Download'],dc:'date',nc:'narration',wc:'debit',cc:'credit'},
+  {id:'pnb',n:'PNB',fmt:'xlsx',steps:['Login to netpnb.com','Accounts → Statement → Download Excel'],dc:'txn date',nc:'narration',wc:'debit',cc:'credit'},
+  {id:'bob',n:'BOB',fmt:'xlsx',steps:['Login to bobworld.in','Accounts → Statement → Export Excel'],dc:'date',nc:'narration',wc:'debit',cc:'credit'},
+  {id:'canara',n:'Canara',fmt:'xlsx',steps:['Login to canarabank.com','Accounts → Statement → Download Excel'],dc:'date',nc:'description',wc:'debit',cc:'credit'},
+  {id:'idfc',n:'IDFC First',fmt:'xlsx',steps:['Login to idfcfirstbank.com','Accounts → Account Statement → Export Excel'],dc:'date',nc:'narration',wc:'debit',cc:'credit'},
+  {id:'paytm',n:'Paytm',fmt:'csv',steps:['Open Paytm app → My Passbook','Tap export icon → Select range → Download CSV'],dc:'date',nc:'description',wc:'',cc:''},
+  {id:'other',n:'Other',fmt:'any',steps:['Login to your bank NetBanking','Go to Account Statement','Download as Excel or CSV','Upload file below'],dc:'',nc:'',wc:'',cc:''},
+];
+
+// ── INIT ──
+window.addEventListener('load',()=>{
+  setTimeout(()=>document.getElementById('splash').classList.add('hide'),1300);
+  try{const r=localStorage.getItem(SK);if(r)txs=JSON.parse(r);}catch(e){txs=[];}
+  document.getElementById('txdate').value=new Date().toISOString().split('T')[0];
+  buildBankGrid();renderDash();renderTxns();
+  // drag & drop
+  const dz=document.getElementById('dropzone');
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)processFile(f);});
+});
+const save=()=>{try{localStorage.setItem(SK,JSON.stringify(txs));}catch(e){}};
+
+// ── NAV ──
+function showTab(t){
+  document.querySelectorAll('.tab,.section').forEach(e=>e.classList.remove('active'));
+  const dtab=document.querySelector(`.tab[onclick="showTab('${t}')"]`);
+  if(dtab)dtab.classList.add('active');
+  document.getElementById('tab-'+t).classList.add('active');
+  // mobile nav
+  document.querySelectorAll('.mob-tab').forEach(e=>e.classList.remove('active'));
+  const mnav=document.getElementById('mnav-'+t);
+  if(mnav)mnav.classList.add('active');
+  // update fab visibility
+  const fab=document.querySelector('.mob-fab');
+  if(fab)fab.style.display=t==='add'?'none':'flex';
+  // render charts on demand
+  if(t==='charts')setTimeout(renderCharts,50);
+}
+
+function setPeriod(p,e){
+  period=p;
+  document.querySelectorAll('#tab-dash .ptabs .pt').forEach(x=>x.classList.remove('active'));
+  e.target.classList.add('active');renderDash();
+}
+function setChartPeriod(p,e){
+  chartPeriod=p;
+  document.querySelectorAll('#tab-charts .ptabs .pt').forEach(x=>x.classList.remove('active'));
+  e.target.classList.add('active');renderCharts();
+}
+function setCatChart(t,e){
+  catChartType=t;
+  document.querySelectorAll('.ct').forEach(x=>x.classList.remove('active'));
+  e.target.classList.add('active');
+  renderCharts();
+}
+
+function fbp(arr,p){
+  if(p==='all')return arr;
+  const now=new Date();now.setHours(23,59,59,999);const from=new Date();
+  if(p==='week'){from.setDate(from.getDate()-from.getDay());from.setHours(0,0,0,0);}
+  else if(p==='month'){from.setDate(1);from.setHours(0,0,0,0);}
+  else if(p==='quarter'){const q=Math.floor(from.getMonth()/3);from.setMonth(q*3,1);from.setHours(0,0,0,0);}
+  else if(p==='year'){from.setMonth(0,1);from.setHours(0,0,0,0);}
+  return arr.filter(t=>new Date(t.date)>=from&&new Date(t.date)<=now);
+}
+
+// ── DASHBOARD ──
+function renderDash(){
+  const all=fbp(txs,period);
+  const exp=all.filter(t=>t.type==='expense'),inc=all.filter(t=>t.type==='income');
+  const te=exp.reduce((s,t)=>s+t.amount,0),ti=inc.reduce((s,t)=>s+t.amount,0),bal=ti-te;
+  const cash=exp.filter(t=>t.method==='cash').reduce((s,t)=>s+t.amount,0);
+  document.getElementById('metrics').innerHTML=`
+    <div class="metric"><div class="mlabel">Total expenses</div><div class="mval" style="color:var(--red)">₹${f(te)}</div><div class="msub">${exp.length} txns</div></div>
+    <div class="metric"><div class="mlabel">Total income</div><div class="mval" style="color:var(--green)">₹${f(ti)}</div><div class="msub">${inc.length} entries</div></div>
+    <div class="metric"><div class="mlabel">Net balance</div><div class="mval" style="color:${bal>=0?'var(--green)':'var(--red)'}">₹${f(Math.abs(bal))}</div><div class="msub">${bal>=0?'Surplus':'Deficit'}</div></div>
+    <div class="metric"><div class="mlabel">Cash spent</div><div class="mval">₹${f(cash)}</div><div class="msub">manual</div></div>`;
+  const cats={};exp.forEach(t=>{cats[t.category]=(cats[t.category]||0)+t.amount;});
+  const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]),mx=sorted[0]?.[1]||1;
+  drawDonut(sorted,te);
+  document.getElementById('rlegend').innerHTML=sorted.slice(0,5).map(([c,v])=>`<div class="ritem"><div class="rdot" style="background:${CC[c]||'#888'}"></div><span style="flex:1;font-size:12px">${c}</span><span style="font-size:12px;font-family:'DM Mono',monospace;color:var(--text2)">₹${f(v)}</span></div>`).join('')||'<span style="font-size:12px;color:var(--text3)">No data yet</span>';
+  document.getElementById('cbars').innerHTML=sorted.length?sorted.map(([c,v])=>`<div class="cbar"><div class="cbname"><span>${CI[c]||'•'} ${c}</span><span class="cbamt">₹${f(v)} <span class="cbpct">${Math.round(v/te*100)}%</span></span></div><div class="cbtrack"><div class="cbfill" style="width:${Math.round(v/mx*100)}%;background:${CC[c]||'#888'}"></div></div></div>`).join(''):'<div class="empty"><i class="ti ti-chart-pie"></i>No expenses yet</div>';
+  const rec=[...txs].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6);
+  document.getElementById('recent').innerHTML=rec.length?rec.map(txHTML).join(''):'<div class="empty"><i class="ti ti-receipt"></i>No transactions yet — add one or import your bank statement</div>';
+}
+
+function drawDonut(sorted,total){
+  const svg=document.getElementById('donut');
+  if(!sorted.length){svg.innerHTML='<circle cx="55" cy="55" r="40" fill="none" stroke="#2E2E38" stroke-width="11"/>';return;}
+  let ang=-Math.PI/2,paths='';
+  sorted.forEach(([c,v])=>{
+    const a=(v/total)*2*Math.PI,x1=55+40*Math.cos(ang),y1=55+40*Math.sin(ang),x2=55+40*Math.cos(ang+a),y2=55+40*Math.sin(ang+a);
+    paths+=`<path d="M${x1} ${y1} A40 40 0 ${a>Math.PI?1:0} 1 ${x2} ${y2}" fill="none" stroke="${CC[c]||'#888'}" stroke-width="11" stroke-linecap="round"/>`;
+    ang+=a+0.04;
+  });
+  svg.innerHTML=paths+`<text x="55" y="51" text-anchor="middle" fill="#F0EFF8" font-size="9" font-family="DM Sans">spent</text><text x="55" y="63" text-anchor="middle" fill="#7C6AF7" font-size="10" font-weight="600" font-family="DM Mono">₹${fs(total)}</text>`;
+}
+
+// ── CHARTS ──
+Chart.defaults.color='#9896B0';
+Chart.defaults.borderColor='#2E2E38';
+Chart.defaults.font.family='DM Sans';
+
+function destroyChart(inst){if(inst){inst.destroy();}return null;}
+
+function renderCharts(){
+  const all=fbp(txs,chartPeriod);
+  const exp=all.filter(t=>t.type==='expense'),inc=all.filter(t=>t.type==='income');
+
+  // 1. Monthly trend (line)
+  lineChartInst=destroyChart(lineChartInst);
+  const monthMap={};
+  const months12=[];const now=new Date();
+  for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months12.push(`${MONTHS[d.getMonth()]} ${d.getFullYear()}`);monthMap[`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`]={e:0,i:0};}
+  all.forEach(t=>{const k=t.date.slice(0,7);if(monthMap[k]){if(t.type==='expense')monthMap[k].e+=t.amount;else monthMap[k].i+=t.amount;}});
+  const mKeys=Object.keys(monthMap).sort();
+  lineChartInst=new Chart(document.getElementById('lineChart'),{type:'line',data:{labels:months12,datasets:[{label:'Expenses',data:mKeys.map(k=>monthMap[k].e),borderColor:'#F87171',backgroundColor:'rgba(248,113,113,.1)',tension:.4,fill:true,pointRadius:3},{label:'Income',data:mKeys.map(k=>monthMap[k].i),borderColor:'#4ADE80',backgroundColor:'rgba(74,222,128,.08)',tension:.4,fill:true,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,padding:14,font:{size:11}}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},maxRotation:45}},y:{grid:{color:'#2E2E38'},ticks:{font:{size:10},callback:v=>'₹'+fs(v)}}}}});
+
+  // 2. Category chart
+  catChartInst=destroyChart(catChartInst);
+  const cats={};exp.forEach(t=>{cats[t.category]=(cats[t.category]||0)+t.amount;});
+  const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  const catLabels=sorted.map(([c])=>c),catVals=sorted.map(([,v])=>v),catColors=sorted.map(([c])=>CC[c]||'#888');
+  catChartInst=new Chart(document.getElementById('catChart'),{type:catChartType,data:{labels:catLabels,datasets:[{data:catVals,backgroundColor:catColors,borderColor:'transparent',borderRadius:catChartType==='bar'?6:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:catChartType==='doughnut'?'right':'top',labels:{boxWidth:10,padding:12,font:{size:11}}}},scales:catChartType==='bar'?{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#2E2E38'},ticks:{font:{size:10},callback:v=>'₹'+fs(v)}}}:{}}});
+
+  // 3. Income vs Expenses bar
+  incExpChartInst=destroyChart(incExpChartInst);
+  const im={},em={};const allMonths=[...new Set([...inc,...exp].map(t=>t.date.slice(0,7)))].sort().slice(-6);
+  allMonths.forEach(m=>{im[m]=0;em[m]=0;});
+  inc.forEach(t=>{const k=t.date.slice(0,7);if(im[k]!==undefined)im[k]+=t.amount;});
+  exp.forEach(t=>{const k=t.date.slice(0,7);if(em[k]!==undefined)em[k]+=t.amount;});
+  const mLabels=allMonths.map(m=>{const[y,mo]=m.split('-');return MONTHS[+mo-1]+' '+y.slice(2);});
+  incExpChartInst=new Chart(document.getElementById('incExpChart'),{type:'bar',data:{labels:mLabels,datasets:[{label:'Income',data:allMonths.map(m=>im[m]),backgroundColor:'rgba(74,222,128,.7)',borderRadius:5},{label:'Expenses',data:allMonths.map(m=>em[m]),backgroundColor:'rgba(248,113,113,.7)',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,padding:14,font:{size:11}}}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#2E2E38'},ticks:{font:{size:10},callback:v=>'₹'+fs(v)}}}}});
+
+  // 4. Daily spending last 30 days
+  dailyChartInst=destroyChart(dailyChartInst);
+  const daily={};for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);daily[d.toISOString().split('T')[0]]=0;}
+  txs.filter(t=>t.type==='expense'&&daily[t.date]!==undefined).forEach(t=>{daily[t.date]+=t.amount;});
+  const dKeys=Object.keys(daily).sort();
+  dailyChartInst=new Chart(document.getElementById('dailyChart'),{type:'bar',data:{labels:dKeys.map(d=>{const dt=new Date(d);return dt.getDate()+' '+MONTHS[dt.getMonth()];}),datasets:[{label:'Daily spend',data:dKeys.map(k=>daily[k]),backgroundColor:dKeys.map(k=>daily[k]>0?'rgba(124,106,247,.75)':'rgba(124,106,247,.15)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:9},maxRotation:60,autoSkip:true,maxTicksLimit:10}},y:{grid:{color:'#2E2E38'},ticks:{font:{size:10},callback:v=>'₹'+fs(v)}}}}});
+}
+
+// ── TX HTML ──
+function txHTML(t){
+  const e=t.type==='expense',bg=(CC[t.category]||'#888')+'22';
+  return `<div class="txi"><div class="txico" style="background:${bg}">${CI[t.category]||'📦'}</div><div class="txinf"><div class="txtit">${t.desc||t.category}</div><div class="txmet"><span>${t.date}</span><span>${t.category}</span><span>${MI[t.method]||'💳'} ${t.method}</span>${t.source==='import'?'<span style="opacity:.45">imported</span>':''}</div></div><div class="txamt" style="color:${e?'var(--red)':'var(--green)'}">${e?'−':'+'}₹${f(t.amount)}</div><button class="txdel" onclick="delTx('${t.id}')" title="Delete"><i class="ti ti-trash"></i></button></div>`;
+}
+
+function renderTxns(){
+  const p=document.getElementById('fp')?.value||'all',cat=document.getElementById('fc')?.value||'',typ=document.getElementById('ft')?.value||'',q=(document.getElementById('fs')?.value||'').toLowerCase();
+  let arr=fbp(txs,p);
+  if(cat)arr=arr.filter(t=>t.category===cat);
+  if(typ)arr=arr.filter(t=>t.type===typ);
+  if(q)arr=arr.filter(t=>(t.desc||'').toLowerCase().includes(q)||t.category.toLowerCase().includes(q));
+  arr=[...arr].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  document.getElementById('txlist').innerHTML=arr.length?arr.map(txHTML).join(''):'<div class="empty"><i class="ti ti-filter-off"></i>No transactions match your filters</div>';
+  const te=arr.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0),ti=arr.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  document.getElementById('txsum').textContent=arr.length?`${arr.length} transactions · Out ₹${f(te)} · In ₹${f(ti)}`:'';
+}
+
+function addTx(){
+  const amt=parseFloat(document.getElementById('txamt').value),dt=document.getElementById('txdate').value,msg=document.getElementById('addmsg');
+  if(!amt||amt<=0){msg.innerHTML='<span style="color:var(--red)">Please enter a valid amount.</span>';return;}
+  if(!dt){msg.innerHTML='<span style="color:var(--red)">Please pick a date.</span>';return;}
+  txs.push({id:Date.now().toString(),type:document.getElementById('txtype').value,amount:amt,category:document.getElementById('txcat').value,date:dt,desc:document.getElementById('txdesc').value.trim(),method:document.getElementById('txmeth').value,note:document.getElementById('txnote').value.trim(),source:'manual'});
+  save();msg.innerHTML='<span style="color:var(--green)">✓ Transaction added!</span>';
+  ['txamt','txdesc','txnote'].forEach(id=>document.getElementById(id).value='');
+  setTimeout(()=>{msg.innerHTML='';},2500);
+  renderDash();renderTxns();
+}
+
+function delTx(id){
+  if(!confirm('Delete this transaction?'))return;
+  txs=txs.filter(t=>t.id!==id);save();renderDash();renderTxns();
+}
+
+// ── BANK GRID ──
+function buildBankGrid(){
+  document.getElementById('bgrid').innerHTML=BANKS.map(b=>`<div class="bchip" id="chip-${b.id}" onclick="selBk('${b.id}')"><i class="ti ti-building-bank"></i>${b.n}<small>${b.fmt}</small></div>`).join('');
+}
+function selBk(id){
+  selBank=BANKS.find(b=>b.id===id);
+  document.querySelectorAll('.bchip').forEach(c=>c.classList.remove('active'));
+  document.getElementById('chip-'+id)?.classList.add('active');
+  const box=document.getElementById('binstruct');
+  if(selBank?.steps?.length){box.style.display='block';document.getElementById('bsteps').innerHTML=`<div class="steps">${selBank.steps.map(s=>`<div class="step">${s}</div>`).join('')}</div>`;}
+  else box.style.display='none';
+}
+
+// ── FILE UPLOAD ──
+function handleUpload(e){const f=e.target.files[0];if(f)processFile(f);e.target.value='';}
+
+function processFile(file){
+  const msg=document.getElementById('impmsg'),prog=document.getElementById('improg'),pf=document.getElementById('pfill'),pl=document.getElementById('plabel');
+  msg.innerHTML='';prog.style.display='block';pf.style.width='15%';pl.textContent='Reading file...';
+  const ext=file.name.split('.').pop().toLowerCase();
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    pf.style.width='55%';pl.textContent='Parsing spreadsheet...';
+    try{
+      let wb;
+      if(ext==='csv')wb=XLSX.read(ev.target.result,{type:'string',raw:false});
+      else wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array',cellDates:true,raw:false,dateNF:'DD/MM/YYYY'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const all=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:false,dateNF:'DD/MM/YYYY'});
+      pf.style.width='80%';pl.textContent='Detecting columns...';
+      let hi=-1;
+      for(let i=0;i<Math.min(all.length,25);i++){
+        const row=all[i];const ne=row.filter(c=>String(c).trim()!=='');
+        if(ne.length<2)continue;
+        const lj=ne.map(c=>String(c).toLowerCase()).join(' ');
+        if((lj.includes('date')||lj.includes('txn'))&&(lj.includes('narr')||lj.includes('desc')||lj.includes('parti')||lj.includes('remark')||lj.includes('detail'))){hi=i;break;}
+      }
+      if(hi===-1){for(let i=0;i<Math.min(all.length,20);i++){const row=all[i];if(row.filter(c=>String(c).trim()!=='').length>=3&&isNaN(parseFloat(String(row[0])))){hi=i;break;}}}
+      if(hi===-1){prog.style.display='none';msg.innerHTML='<span style="color:var(--red)">⚠ Could not detect column headers. Make sure this is a bank statement file.</span>';return;}
+      pHdrs=all[hi].map(h=>String(h||'').replace(/\n/g,' ').trim());
+      pRows=all.slice(hi+1).filter(r=>r.some(c=>String(c).trim()!==''));
+      pf.style.width='100%';pl.textContent=`✓ Found ${pRows.length} rows`;
+      setTimeout(()=>{prog.style.display='none';},800);
+      showMapper();
+    }catch(err){prog.style.display='none';msg.innerHTML=`<span style="color:var(--red)">Error: ${err.message}</span>`;}
+  };
+  if(ext==='csv')reader.readAsText(file);else reader.readAsArrayBuffer(file);
+}
+
+function showMapper(){
+  const hn=pHdrs.map(h=>String(h).toLowerCase());
+  const g=(...kws)=>{for(const k of kws){const i=hn.findIndex(h=>h.includes(k));if(i>=0)return i;}return -1;};
+  const gu={date:g('txn date','value date','trans date','date','dated'),narr:g('narration','description','particulars','remark','details','narr','desc'),wd:g('withdrawal','debit amt','debit amount','dr amount','amount(dr','amount dr','withdrawl','debit'),dep:g('deposit','credit amt','credit amount','cr amount','amount(cr','amount cr','credit'),amt:g('transaction amount','amount','amt'),bal:g('closing balance','balance','bal')};
+  if(selBank&&selBank.dc){[['date',selBank.dc],['narr',selBank.nc],['wd',selBank.wc],['dep',selBank.cc]].forEach(([k,hint])=>{if(!hint)return;const i=hn.findIndex(h=>h.includes(hint.toLowerCase()));if(i>=0)gu[k]=i;});}
+  const opts=sel=>['(skip)',...pHdrs].map((h,i)=>`<option value="${i-1}" ${(i-1)===sel?'selected':''}>${h}</option>`).join('');
+  document.getElementById('mapfields').innerHTML=`
+    <div><label>📅 Date column</label><select id="md">${opts(gu.date)}</select></div>
+    <div><label>📝 Description</label><select id="mn">${opts(gu.narr)}</select></div>
+    <div><label>💸 Withdrawal / Debit</label><select id="mw">${opts(gu.wd)}</select></div>
+    <div><label>💰 Deposit / Credit</label><select id="mc">${opts(gu.dep)}</select></div>
+    <div><label>🔢 Single amount column</label><select id="ma">${opts(gu.amt)}</select></div>
+    <div><label>📊 Closing balance</label><select id="mb">${opts(gu.bal)}</select></div>`;
+  document.getElementById('cprev').innerHTML=`<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Preview — first 4 rows</div><table><tr>${pHdrs.map(h=>`<th>${String(h).slice(0,16)}</th>`).join('')}</tr>${pRows.slice(0,4).map(r=>`<tr>${pHdrs.map((_,ci)=>`<td>${String(r[ci]||'').slice(0,18)}</td>`).join('')}</tr>`).join('')}</table>`;
+  document.getElementById('colmap').style.display='block';
+  document.getElementById('colmap').scrollIntoView({behavior:'smooth'});
+  document.getElementById('impmsg').innerHTML=`<span style="color:var(--green)">✓ ${pRows.length} rows found — confirm columns below.</span>`;
+  document.getElementById('impdone').innerHTML='';
+}
+
+function runImport(){
+  const di=+document.getElementById('md').value,ni=+document.getElementById('mn').value;
+  const wi=+document.getElementById('mw').value,ci=+document.getElementById('mc').value,ai=+document.getElementById('ma').value;
+  if(di<0||ni<0){document.getElementById('impdone').innerHTML='<span style="color:var(--amber)">Please map at least Date and Description.</span>';return;}
+  let added=0,skipped=0;const eids=new Set(txs.map(t=>t.id));
+  pRows.forEach(row=>{
+    const dstr=String(row[di]||'').trim(),narr=String(row[ni]||'').trim();
+    let wd=0,dep=0;
+    if(wi>=0)wd=pa(row[wi]);if(ci>=0)dep=pa(row[ci]);
+    if(ai>=0&&wd===0&&dep===0){const a=pa(row[ai]);if(a>0)dep=a;else if(a<0)wd=Math.abs(a);}
+    if(!narr||(wd===0&&dep===0)){skipped++;return;}
+    const date=pdate(dstr);if(!date){skipped++;return;}
+    const amt=wd>0?wd:dep,type=dep>0&&wd===0?'income':'expense';
+    const uid=`imp_${date}_${narr.slice(0,14).replace(/\W/g,'')}_${amt}`;
+    if(eids.has(uid)){skipped++;return;}
+    txs.push({id:uid,type,amount:amt,category:gcat(narr),date,desc:narr.slice(0,90),method:selBank?selBank.id:'bank',source:'import'});
+    eids.add(uid);added++;
+  });
+  save();
+  const dm=document.getElementById('impdone');
+  if(added>0){dm.innerHTML=`<span style="color:var(--green)">✓ ${added} transactions imported!${skipped?' ('+skipped+' skipped)':''}</span>`;document.getElementById('colmap').style.display='none';renderDash();renderTxns();setTimeout(()=>showTab('dash'),900);}
+  else dm.innerHTML=`<span style="color:var(--amber)">No new transactions. ${skipped} rows skipped — try adjusting column mapping.</span>`;
+}
+
+// ── DATE PARSER ──
+function pdate(s){
+  if(!s||s==='undefined')return null;
+  s=String(s).trim().replace(/"/g,'');if(!s)return null;
+  let m;
+  m=s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
+  if(m){let y=+m[3];if(y<100)y+=2000;return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;}
+  m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);if(m)return `${m[1]}-${m[2]}-${m[3]}`;
+  m=s.match(/^(\d{1,2})[\s\-]([A-Za-z]{3,})[\s\-,](\d{2,4})/);
+  if(m){const mo={jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'};const mn=mo[m[2].toLowerCase().slice(0,3)];if(mn){let y=+m[3];if(y<100)y+=2000;return `${y}-${mn}-${m[1].padStart(2,'0')}`;}}
+  const n=parseFloat(s);if(!isNaN(n)&&n>40000&&n<55000){const d=new Date(Date.UTC(1899,11,30)+n*86400000);if(!isNaN(d))return d.toISOString().split('T')[0];}
+  const d=new Date(s);if(!isNaN(d))return d.toISOString().split('T')[0];
+  return null;
+}
+function pa(v){if(v===null||v===undefined||v==='')return 0;const n=parseFloat(String(v).replace(/[,₹\s\u20B9]/g,'').replace(/\(([^)]+)\)/,'-$1'));return isNaN(n)?0:Math.abs(n);}
+
+// ── CATEGORY GUESSER ──
+function gcat(n){
+  const d=n.toLowerCase();
+  if(/zomato|swiggy|food|restaurant|cafe|biryani|pizza|dhaba|lunch|dinner|canteen|chai|bakery|kfc|mcdon|domino|starbucks/.test(d))return'Food & Dining';
+  if(/uber|ola|rapido|auto|cab|petrol|fuel|bus|irctc|train|flight|metro|rickshaw|fastag|toll|parking/.test(d))return'Transport';
+  if(/amazon|flipkart|myntra|ajio|meesho|nykaa|shopping|mall|cloth|saree|shoe|apparel|bigbasket|blinkit|zepto|grocer|dmart|jiomart/.test(d))return'Shopping';
+  if(/electricity|bescom|msedcl|adani|bill|water|gas|internet|broadband|jio|airtel|vi |bsnl|recharge|postpaid|prepaid|lic|insurance|housing|maintenance/.test(d))return'Bills & Utilities';
+  if(/netflix|hotstar|prime|spotify|movie|pvr|inox|bookmyshow|concert|game|sport|cricket|youtube|disney/.test(d))return'Entertainment';
+  if(/hospital|doctor|clinic|pharmacy|medplus|apollo|health|medicine|lab|diagnostic|netmeds|1mg|practo/.test(d))return'Health';
+  if(/school|college|university|tuition|course|udemy|byju|vedantu|book|exam|fee|coaching/.test(d))return'Education';
+  if(/mutual fund|sip |nps|zerodha|groww|upstox|invest|stock|share|demat|ppf|fd |fixed dep/.test(d))return'Investments';
+  if(/salary|payroll|freelance|client|invoice|business|vendor|gst|tds|commission|consulting/.test(d))return'Business';
+  return'Other';
+}
+
+// ── FORMAT ──
+const f=n=>Math.abs(n).toLocaleString('en-IN',{maximumFractionDigits:0});
+function fs(n){if(n>=10000000)return(n/10000000).toFixed(1)+'Cr';if(n>=100000)return(n/100000).toFixed(1)+'L';if(n>=1000)return(n/1000).toFixed(1)+'K';return f(n);}
+
+// ── EXPORT ──
+function exportExcel(){
+  if(!txs.length){alert('No transactions to export.');return;}
+  const ws=XLSX.utils.json_to_sheet(txs.map(t=>({Date:t.date,Description:t.desc||'',Category:t.category,Type:t.type,Amount:t.amount,Method:t.method,Source:t.source||'manual'})));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Transactions');
+  XLSX.writeFile(wb,`SpendSmart_${new Date().toISOString().split('T')[0]}.xlsx`);
+}
+function exportJSON(){
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(txs,null,2)],{type:'application/json'}));a.download=`spendsmart_backup_${new Date().toISOString().split('T')[0]}.json`;a.click();
+}
+function clearAll(){if(!confirm('Clear ALL data? This cannot be undone.'))return;txs=[];save();renderDash();renderTxns();}
+</script>
+</body>
+</html>
